@@ -1,2 +1,2 @@
 # polaris2istio
-Polaris2istio connects polaris registry to Istio service mesh.
+polaris2istio watches Polaris registry and synchronize all the Polaris services to Istio.
