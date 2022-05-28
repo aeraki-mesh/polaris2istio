@@ -66,8 +66,9 @@ func (w *ProviderWatcher) Run(stop <-chan struct{}) {
 		}
 
 		_, existsRevision := se.GetAnnotations()["aeraki.net/revision"]
+		_, existsExternal := se.GetAnnotations()["aeraki.net/external"]
 
-		if err := w.polarisclient.WatchPolarisService(polarisInfo.PolarisNamespace, polarisInfo.PolarisService, w.syncPolarisServices2Istio, !existsRevision, stop); err != nil {
+		if err := w.polarisclient.WatchPolarisService(polarisInfo, w.syncPolarisServices2Istio, !(existsRevision && existsExternal), stop); err != nil {
 			log.Errorf("Watch polaris %v failed, error: %v", polarisInfo, err)
 			continue
 		}
@@ -87,21 +88,21 @@ func (w *ProviderWatcher) getServiceEntryList() (*v1alpha3.ServiceEntryList, err
 	return services, nil
 }
 
-func (w *ProviderWatcher) syncPolarisServices2Istio(polarisNamespace string, polarisService string) {
-	klog.Infof("[syncPolarisServices2Istio] [polarisNamespace]%s [polarisService]%s", polarisNamespace, polarisService)
-	rsp, err := w.polarisclient.GetPolarisAllInstances(polarisNamespace, polarisService)
+func (w *ProviderWatcher) syncPolarisServices2Istio(polarisInfo *model.PolarisInfo) {
+	klog.Infof("[syncPolarisServices2Istio] polarisInfo: %v", polarisInfo)
+	rsp, err := w.polarisclient.GetPolarisAllInstances(polarisInfo.PolarisNamespace, polarisInfo.PolarisService)
 	if err != nil {
 		klog.Errorf("[syncPolarisServices2Istio] query polaris services' instances failed, err: %v", err.Error())
 		return
 	}
 
-	newServiceEntry, newAnnotations := model.ConvertServiceEntry(rsp)
+	newServiceEntry, newAnnotations := model.ConvertServiceEntry(rsp, polarisInfo)
 	if newServiceEntry == nil {
 		klog.Errorf("convertServiceEntry failed?")
 		return
 	}
 
-	oldServiceEntry, err := w.ic.NetworkingV1alpha3().ServiceEntries(w.configRootNS).Get(context.TODO(), model.CovertServiceName(polarisNamespace, polarisService), v1.GetOptions{})
+	oldServiceEntry, err := w.ic.NetworkingV1alpha3().ServiceEntries(w.configRootNS).Get(context.TODO(), model.CovertServiceName(polarisInfo.PolarisNamespace, polarisInfo.PolarisService), v1.GetOptions{})
 	if err != nil {
 		klog.Infof("[syncPolarisServices2Istio] get old service entries failed, error: %v", err)
 		return
@@ -110,7 +111,7 @@ func (w *ProviderWatcher) syncPolarisServices2Istio(polarisNamespace string, pol
 	if revision, exists := oldServiceEntry.GetAnnotations()["aeraki.net/revision"]; !exists || newAnnotations["aeraki.net/revision"] != revision {
 		klog.Infof("[syncPolarisServices2Istio] update serviceentry: %v", newServiceEntry)
 		_, err = w.ic.NetworkingV1alpha3().ServiceEntries(oldServiceEntry.Namespace).Update(context.TODO(),
-			w.toServiceEntryCRD(model.CovertServiceName(polarisNamespace, polarisService), newServiceEntry, oldServiceEntry, newAnnotations),
+			w.toServiceEntryCRD(model.CovertServiceName(polarisInfo.PolarisNamespace, polarisInfo.PolarisService), newServiceEntry, oldServiceEntry, newAnnotations),
 			v1.UpdateOptions{FieldManager: aerakiFieldManager})
 		if err != nil {
 			klog.Errorf("failed to update ServiceEntry: %s", err.Error())
@@ -136,6 +137,7 @@ func (w *ProviderWatcher) toServiceEntryCRD(name string, new *istio.ServiceEntry
 
 	if old != nil {
 		serviceEntry.ResourceVersion = old.ResourceVersion
+		serviceEntry.Labels = old.Labels
 	}
 
 	return serviceEntry

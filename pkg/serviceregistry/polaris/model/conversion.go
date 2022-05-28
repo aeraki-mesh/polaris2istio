@@ -28,6 +28,7 @@ import (
 type PolarisInfo struct {
 	PolarisService   string
 	PolarisNamespace string
+	External         string
 }
 
 func replaceSpecialStr(s string) string {
@@ -56,16 +57,25 @@ func GetPolarisInfoFromSEAnnotations(annotations map[string]string) (polarisInfo
 		return nil, fmt.Errorf("polaris info should have [annotation]: aeraki.net/polarisNamespace")
 	}
 
+	external, exists := annotations["aeraki.net/external"]
+	if !exists {
+		external = "true"
+	}
+
 	return &PolarisInfo{
 		PolarisService:   polarisService,
 		PolarisNamespace: polarisNamespace,
+		External:         external,
 	}, nil
 }
 
-func ConvertServiceEntry(rsp *model.InstancesResponse) (*istio.ServiceEntry, map[string]string) {
+func ConvertServiceEntry(rsp *model.InstancesResponse, polarisInfo *PolarisInfo) (*istio.ServiceEntry, map[string]string) {
 	log.Infof("[ConvertServiceEntry] starting covert serviceentry for polairs service: %v, namespace: %v", rsp.GetService(), rsp.GetNamespace())
 	host := CovertServiceHostname(rsp.GetNamespace(), rsp.GetService())
-	location := istio.ServiceEntry_MESH_INTERNAL
+	location := istio.ServiceEntry_MESH_EXTERNAL
+	if polarisInfo.External == "false" {
+		location = istio.ServiceEntry_MESH_INTERNAL
+	}
 	resolution := istio.ServiceEntry_STATIC
 	ports := make(map[uint32]*istio.Port)
 	workloadEntries := make([]*istio.WorkloadEntry, 0)
@@ -94,6 +104,7 @@ func ConvertServiceEntry(rsp *model.InstancesResponse) (*istio.ServiceEntry, map
 	annotations["aeraki.net/polarisNamespace"] = rsp.GetNamespace()
 	annotations["aeraki.net/polarisService"] = rsp.GetService()
 	annotations["aeraki.net/revision"] = rsp.GetRevision()
+	annotations["aeraki.net/external"] = polarisInfo.External
 
 	out := &istio.ServiceEntry{
 		Hosts:      []string{host},

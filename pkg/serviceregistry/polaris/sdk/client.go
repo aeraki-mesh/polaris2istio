@@ -19,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	registryModel "github.com/aeraki-framework/polaris2istio/pkg/serviceregistry/polaris/model"
 	"github.com/polarismesh/polaris-go/api"
 	"github.com/polarismesh/polaris-go/pkg/config"
 	"github.com/polarismesh/polaris-go/pkg/model"
@@ -35,7 +36,7 @@ type PolarisClient struct {
 	polarisMap *sync.Map
 }
 
-type syncSECallBack func(string, string)
+type syncSECallBack func(polarisInfo *registryModel.PolarisInfo)
 
 func NewPolarisClient(polarisAddress string) (*PolarisClient, error) {
 	cf := config.NewDefaultConfiguration([]string{polarisAddress})
@@ -73,21 +74,21 @@ func getName(namespace, serviceName string) string {
 }
 
 // watch polaris service
-func (c *PolarisClient) WatchPolarisService(polarisNamespace string, polarisService string, cb syncSECallBack, force bool, stop <-chan struct{}) error {
-	polarisName := getName(polarisNamespace, polarisService)
+func (c *PolarisClient) WatchPolarisService(polarisInfo *registryModel.PolarisInfo, cb syncSECallBack, force bool, stop <-chan struct{}) error {
+	polarisName := getName(polarisInfo.PolarisNamespace, polarisInfo.PolarisService)
 	_, exists := c.polarisMap.Load(polarisName)
 	if !exists {
 		c.polarisMap.Store(polarisName, 1)
 	}
 	if !force && exists {
-		klog.Infof("[WatchPolarisService] already exist polaris service: %v, %v", polarisNamespace, polarisService)
+		klog.Infof("[WatchPolarisService] already exist polaris service: %v, %v", polarisInfo.PolarisNamespace, polarisInfo.PolarisService)
 		return nil
 	}
 
 	req := &api.WatchServiceRequest{WatchServiceRequest: model.WatchServiceRequest{
 		Key: model.ServiceKey{
-			Namespace: polarisNamespace,
-			Service:   polarisService,
+			Namespace: polarisInfo.PolarisNamespace,
+			Service:   polarisInfo.PolarisService,
 		}}}
 
 	rsp, err := c.conn.WatchService(req)
@@ -96,12 +97,12 @@ func (c *PolarisClient) WatchPolarisService(polarisNamespace string, polarisServ
 		return err
 	}
 
-	cb(polarisNamespace, polarisService)
-	go c.waitForEvents(rsp.EventChannel, polarisNamespace, polarisService, cb, stop)
+	cb(polarisInfo)
+	go c.waitForEvents(rsp.EventChannel, polarisInfo, cb, stop)
 	return nil
 }
 
-func (c *PolarisClient) waitForEvents(ch <-chan model.SubScribeEvent, polarisNamespace string, polarisService string, cb syncSECallBack, stop <-chan struct{}) {
+func (c *PolarisClient) waitForEvents(ch <-chan model.SubScribeEvent, polarisInfo *registryModel.PolarisInfo, cb syncSECallBack, stop <-chan struct{}) {
 	for {
 		select {
 		case <-stop:
@@ -119,34 +120,34 @@ func (c *PolarisClient) waitForEvents(ch <-chan model.SubScribeEvent, polarisNam
 				return
 			}
 			insEvent := e.(*model.InstanceEvent)
-			c.dealEvent(insEvent, polarisNamespace, polarisService, cb)
+			c.dealEvent(insEvent, polarisInfo, cb)
 		}
 	}
 }
 
-func (c *PolarisClient) dealEvent(ins *model.InstanceEvent, polarisNamespace string, polarisService string, cb syncSECallBack) {
+func (c *PolarisClient) dealEvent(ins *model.InstanceEvent, polarisInfo *registryModel.PolarisInfo, cb syncSECallBack) {
 	if ins.AddEvent != nil {
-		c.dealAddEvent(polarisNamespace, polarisService, cb)
+		c.dealAddEvent(polarisInfo, cb)
 	}
 	if ins.UpdateEvent != nil {
-		c.dealUpdateEvent(polarisNamespace, polarisService, cb)
+		c.dealUpdateEvent(polarisInfo, cb)
 	}
 	if ins.DeleteEvent != nil {
-		c.dealDeleteEvent(polarisNamespace, polarisService, cb)
+		c.dealDeleteEvent(polarisInfo, cb)
 	}
 }
 
-func (c *PolarisClient) dealAddEvent(polarisNamespace string, polarisService string, cb syncSECallBack) {
-	klog.Infof("dealAddEvent %s %s", polarisNamespace, polarisService)
-	cb(polarisNamespace, polarisService)
+func (c *PolarisClient) dealAddEvent(polarisInfo *registryModel.PolarisInfo, cb syncSECallBack) {
+	klog.Infof("dealAddEvent polarisInfo %v", polarisInfo)
+	cb(polarisInfo)
 }
 
-func (c *PolarisClient) dealUpdateEvent(polarisNamespace string, polarisService string, cb syncSECallBack) {
-	klog.Infof("dealUpdateEvent %s %s", polarisNamespace, polarisService)
-	cb(polarisNamespace, polarisService)
+func (c *PolarisClient) dealUpdateEvent(polarisInfo *registryModel.PolarisInfo, cb syncSECallBack) {
+	klog.Infof("dealUpdateEvent polarisInfo %v", polarisInfo)
+	cb(polarisInfo)
 }
 
-func (c *PolarisClient) dealDeleteEvent(polarisNamespace string, polarisService string, cb syncSECallBack) {
-	klog.Infof("dealDeleteEvent %s %s", polarisNamespace, polarisService)
-	cb(polarisNamespace, polarisService)
+func (c *PolarisClient) dealDeleteEvent(polarisInfo *registryModel.PolarisInfo, cb syncSECallBack) {
+	klog.Infof("dealDeleteEvent polarisInfo %v", polarisInfo)
+	cb(polarisInfo)
 }
