@@ -1,0 +1,47 @@
+configProperties:
+  version: v2
+  envFile: env.dev
+
+application:
+  name: polaris2istio
+  manifestType: rawManifestLocal
+  resourcePath: ["manifest/templates"]
+  ignoredPath: []
+  env: 
+    - name: DEBUG
+      value: ${DEBUG:-false}
+  services:
+    - name: "polaris2istio"
+      serviceType: "deployment"
+      containers: 
+        - name: "polaris2istio"
+          dev: 
+            gitUrl: ""
+            image: "nocalhost-docker.pkg.coding.net/nocalhost/dev-images/golang:latest"
+            shell: "zsh"
+            workDir: ""
+            storageClass: ""
+            resources: 
+              limits: 
+                memory: "2048Mi"
+                cpu: "2"
+              requests: 
+                memory: "512Mi"
+                cpu: "0.5"
+            persistentVolumeDirs: []
+            command: 
+              run: []
+              debug: []
+            debug: {}
+            hotReload: false
+            sync: 
+              type: "send"
+              mode: "pattern"
+              filePattern: 
+                - "."
+              ignoreFilePattern: 
+                - ".git"
+              deleteProtection: true
+            env: []
+            portForward: []
+            sidecarImage: ""

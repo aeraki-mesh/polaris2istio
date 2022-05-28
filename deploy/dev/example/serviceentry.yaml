@@ -1,0 +1,65 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: productpage
+  namespace: polaris
+  annotations:
+    aeraki.net/polarisNamespace: Test
+    aeraki.net/polarisService: 111:222
+    aeraki.net/business: foo
+  labels:
+    manager: aeraki
+    registry: polaris
+spec:
+  hosts:
+    - dev.productpage.polaris
+  location: MESH_EXTERNAL
+  ports:
+    - number: 80
+      protocol: HTTP
+      name: http
+  resolution: NONE
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: reviews
+  namespace: polaris
+  annotations:
+    aeraki.net/polarisNamespace: test
+    aeraki.net/polarisService: reviews
+    aeraki.net/business: bar
+  labels:
+    manager: aeraki
+    registry: polaris
+spec:
+  hosts:
+    - dev.reviews.polaris
+  location: MESH_EXTERNAL
+  ports:
+    - number: 80
+      protocol: HTTP
+      name: http
+  resolution: NONE
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: rating
+  namespace: polaris
+  annotations:
+    aeraki.net/polarisNamespace: test
+    aeraki.net/polarisService: rating
+    aeraki.net/business: bar
+  labels:
+    manager: aeraki
+    registry: polaris
+spec:
+  hosts:
+    - dev.rating.polaris
+  location: MESH_EXTERNAL
+  ports:
+    - number: 80
+      protocol: HTTP
+      name: http
+  resolution: NONE

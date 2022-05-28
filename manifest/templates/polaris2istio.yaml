@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: polaris2istio
+  labels:
+    app: polaris2istio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: polaris2istio
+  template:
+    metadata:
+      labels:
+        app: polaris2istio
+    spec:
+      containers:
+      - name: polaris2istio
+        image: nocalhost-docker.pkg.coding.net/nocalhost/dev-images/golang:latest
+        imagePullPolicy: Always
+        command:
+        - tail
+        - -f
+        - /dev/null
+        resources:
+          limits:
+            cpu: 2
+            memory: 2048Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi

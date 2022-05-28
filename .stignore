@@ -1,0 +1,13 @@
+// Whether to enable the parse the gitignore from the home directory
+// While enabled, the configuration of "ignoredPattern" or "syncedPattern" will not take effect.
+#disableParseFromGitIgnore
+
+// Ignored pattern block, the priority of ignored pattern is highest, default is ""
+.git
+
+// Synced pattern block, default is "!**"
+!**
+
+// ignored all for basic, and it's lowest priority
+**
+*.log
