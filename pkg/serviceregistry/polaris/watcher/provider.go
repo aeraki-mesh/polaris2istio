@@ -108,6 +108,8 @@ func (w *ProviderWatcher) syncPolarisServices2Istio(polarisInfo *model.PolarisIn
 		return
 	}
 
+	newServiceEntry.Addresses = append(newServiceEntry.Addresses, oldServiceEntry.Spec.GetAddresses()...)
+
 	if revision, exists := oldServiceEntry.GetAnnotations()["aeraki.net/revision"]; !exists || newAnnotations["aeraki.net/revision"] != revision {
 		klog.Infof("[syncPolarisServices2Istio] update serviceentry: %v", newServiceEntry)
 		_, err = w.ic.NetworkingV1alpha3().ServiceEntries(oldServiceEntry.Namespace).Update(context.TODO(),
