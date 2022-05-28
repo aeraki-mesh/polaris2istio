@@ -4,19 +4,20 @@ Polaris2istio watches Polaris registry and synchronize the Polaris services whic
 
 ### ![ polaris2istio ](doc/polaris2istio.png)Usage
 
-Build:
+#### Build
 
 ```bash
 make build
 ```
 
-Run the polaris2istio:
+#### Run
 
 ```bash
 polaris2istio --polarisAddress <polarishost:port>
 ```
 
-Method 1. Sync polaris service base on ServiceEntry:
+#### Config
+##### Method 1. Sync polaris service base on ServiceEntry:
 
 ```yaml
 apiVersion: networking.istio.io/v1alpha3
