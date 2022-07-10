@@ -32,6 +32,7 @@ type ServiceWatcher struct {
 	configRootNS   string
 }
 
+// NewServiceWatcher creates a new service watcher
 func NewServiceWatcher(polarisAddress string, registryMethod uint, configRootNS string) (*ServiceWatcher, error) {
 	polarisclient, err := polaris.NewPolarisClient(polarisAddress)
 	if err != nil {
@@ -67,6 +68,7 @@ func getIstioClient() (*istioclient.Clientset, error) {
 	return ic, nil
 }
 
+// Run a time ticker for watch
 func (w *ServiceWatcher) Run(stop <-chan struct{}) {
 	tickTimer := time.NewTicker(10 * time.Second)
 	w.watchProviders(stop)

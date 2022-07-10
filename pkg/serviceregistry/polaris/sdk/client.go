@@ -31,6 +31,7 @@ const (
 	defaultConnectTimeout = time.Second * 5
 )
 
+// PolarisClient is a client for interacting with the polaris
 type PolarisClient struct {
 	conn       api.ConsumerAPI
 	polarisMap *sync.Map
@@ -38,6 +39,7 @@ type PolarisClient struct {
 
 type syncSECallBack func(polarisInfo *registryModel.PolarisInfo)
 
+// NewPolarisClient creates a new client for the polaris
 func NewPolarisClient(polarisAddress string) (*PolarisClient, error) {
 	cf := config.NewDefaultConfiguration([]string{polarisAddress})
 	cf.Global.ServerConnector.Protocol = defaultProtocol
@@ -53,11 +55,12 @@ func NewPolarisClient(polarisAddress string) (*PolarisClient, error) {
 	}, nil
 }
 
+// GetConn get the connection of the client
 func (c *PolarisClient) GetConn() api.ConsumerAPI {
 	return c.conn
 }
 
-// get all instances with the given name and namespace
+// GetPolarisAllInstances get all instances with the given name and namespace
 func (c *PolarisClient) GetPolarisAllInstances(namespace string, service string) (*model.InstancesResponse, error) {
 	req := &api.GetAllInstancesRequest{}
 	req.Namespace = namespace
@@ -73,15 +76,17 @@ func getName(namespace, serviceName string) string {
 	return fmt.Sprintf("%s.%s", namespace, serviceName)
 }
 
-// watch polaris service
-func (c *PolarisClient) WatchPolarisService(polarisInfo *registryModel.PolarisInfo, cb syncSECallBack, force bool, stop <-chan struct{}) error {
+// WatchPolarisService watch polaris services
+func (c *PolarisClient) WatchPolarisService(polarisInfo *registryModel.PolarisInfo, cb syncSECallBack, force bool,
+	stop <-chan struct{}) error {
 	polarisName := getName(polarisInfo.PolarisNamespace, polarisInfo.PolarisService)
 	_, exists := c.polarisMap.Load(polarisName)
 	if !exists {
 		c.polarisMap.Store(polarisName, 1)
 	}
 	if !force && exists {
-		klog.Infof("[WatchPolarisService] already exist polaris service: %v, %v", polarisInfo.PolarisNamespace, polarisInfo.PolarisService)
+		klog.Infof("[WatchPolarisService] already exist polaris service: %v, %v",
+			polarisInfo.PolarisNamespace, polarisInfo.PolarisService)
 		return nil
 	}
 
@@ -102,7 +107,8 @@ func (c *PolarisClient) WatchPolarisService(polarisInfo *registryModel.PolarisIn
 	return nil
 }
 
-func (c *PolarisClient) waitForEvents(ch <-chan model.SubScribeEvent, polarisInfo *registryModel.PolarisInfo, cb syncSECallBack, stop <-chan struct{}) {
+func (c *PolarisClient) waitForEvents(ch <-chan model.SubScribeEvent, polarisInfo *registryModel.PolarisInfo,
+	cb syncSECallBack, stop <-chan struct{}) {
 	for {
 		select {
 		case <-stop:

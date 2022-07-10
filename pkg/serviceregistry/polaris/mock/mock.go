@@ -76,7 +76,7 @@ func (m *PolarisMockServer) initMockData() {
 	}
 }
 
-// newServer
+// NewServer creates a new server
 func (m *PolarisMockServer) NewServer() {
 	grpcOptions := make([]grpc.ServerOption, 0)
 	maxStreams := 100000
@@ -121,16 +121,18 @@ func (m *PolarisMockServer) NewServer() {
 	}()
 }
 
-//stopServer 结束测试套程序
+//StopServer 结束测试套程序
 func (m *PolarisMockServer) StopServer() {
 	log.Printf("Stopping server")
 	m.grpcServer.Stop()
 }
 
+// GetGrpcServerURL of the mock server
 func (m *PolarisMockServer) GetGrpcServerURL() string {
 	return m.grpcListener.Addr().String()
 }
 
+// RunMockServer run the mock server
 func RunMockServer(stop <-chan struct{}) {
 	mockServer := PolarisMockServer{}
 	mockServer.NewServer()
@@ -138,4 +140,5 @@ func RunMockServer(stop <-chan struct{}) {
 	<-stop
 }
 
+// GlobalPolarisMockServer is the global mock server
 var GlobalPolarisMockServer = PolarisMockServer{}

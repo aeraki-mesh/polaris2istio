@@ -25,6 +25,7 @@ import (
 	"istio.io/istio/pkg/config/protocol"
 )
 
+// PolarisInfo is the info of polaris
 type PolarisInfo struct {
 	PolarisService   string
 	PolarisNamespace string
@@ -38,14 +39,17 @@ func replaceSpecialStr(s string) string {
 	return s
 }
 
+// CovertServiceHostname covert the polaris service to host name in the polaris namespace
 func CovertServiceHostname(namespace string, name string) string {
 	return fmt.Sprintf("%s.polaris-%s.polaris", replaceSpecialStr(namespace), replaceSpecialStr(name))
 }
 
+// CovertServiceName covert the polaris service to host name
 func CovertServiceName(namespace string, name string) string {
 	return fmt.Sprintf("%s.polaris-%s", replaceSpecialStr(namespace), replaceSpecialStr(name))
 }
 
+// GetPolarisInfoFromSEAnnotations get the polaris info from seviceentry's annotations
 func GetPolarisInfoFromSEAnnotations(annotations map[string]string) (polarisInfo *PolarisInfo, err error) {
 	polarisService, exists := annotations["aeraki.net/polarisService"]
 	if !exists {
@@ -69,8 +73,11 @@ func GetPolarisInfoFromSEAnnotations(annotations map[string]string) (polarisInfo
 	}, nil
 }
 
-func ConvertServiceEntry(rsp *model.InstancesResponse, polarisInfo *PolarisInfo) (*istio.ServiceEntry, map[string]string) {
-	log.Infof("[ConvertServiceEntry] starting covert serviceentry for polairs service: %v, namespace: %v", rsp.GetService(), rsp.GetNamespace())
+// ConvertServiceEntry covert the polaris service to service entry
+func ConvertServiceEntry(rsp *model.InstancesResponse, polarisInfo *PolarisInfo) (*istio.ServiceEntry,
+	map[string]string) {
+	log.Infof("[ConvertServiceEntry] starting covert serviceentry for polairs service: %v, namespace: %v",
+		rsp.GetService(), rsp.GetNamespace())
 	host := CovertServiceHostname(rsp.GetNamespace(), rsp.GetService())
 	location := istio.ServiceEntry_MESH_EXTERNAL
 	if polarisInfo.External == "false" {

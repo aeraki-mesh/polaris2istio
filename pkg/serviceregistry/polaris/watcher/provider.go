@@ -35,14 +35,16 @@ const (
 	aerakiFieldManager = "aeraki"
 )
 
+// ProviderWatcher is a watcher for polaris
 type ProviderWatcher struct {
 	polarisclient *polaris.PolarisClient
 	ic            *istioclient.Clientset
 	configRootNS  string
 }
 
-// NewWatcher creates a ProviderWatcher
-func NewProviderWatcher(ic *istioclient.Clientset, polarisclient *polaris.PolarisClient, configRootNS string) *ProviderWatcher {
+// NewProviderWatcher creates a ProviderWatcher
+func NewProviderWatcher(ic *istioclient.Clientset, polarisclient *polaris.PolarisClient,
+	configRootNS string) *ProviderWatcher {
 	return &ProviderWatcher{
 		polarisclient: polarisclient,
 		ic:            ic,
@@ -50,7 +52,7 @@ func NewProviderWatcher(ic *istioclient.Clientset, polarisclient *polaris.Polari
 	}
 }
 
-// scan services, then  registered or update polaris services to the istio mesh
+// Run scan services, then  registered or update polaris services to the istio mesh
 func (w *ProviderWatcher) Run(stop <-chan struct{}) {
 	seList, err := w.getServiceEntryList()
 	if err != nil {
@@ -58,7 +60,8 @@ func (w *ProviderWatcher) Run(stop <-chan struct{}) {
 	}
 
 	for _, se := range seList.Items {
-		log.Debugf("ServiceEntry [name]: %v [namespace]: %v [hosts]: %v, [endpoints]: %s", se.Name, se.Namespace, se.Spec.Hosts, se.Spec.Endpoints)
+		log.Debugf("ServiceEntry [name]: %v [namespace]: %v [hosts]: %v, [endpoints]: %s",
+			se.Name, se.Namespace, se.Spec.Hosts, se.Spec.Endpoints)
 		polarisInfo, err := model.GetPolarisInfoFromSEAnnotations(se.GetAnnotations())
 		if err != nil {
 			log.Errorf("Error get ServiceEntry's annotations: %v", err)
@@ -68,7 +71,8 @@ func (w *ProviderWatcher) Run(stop <-chan struct{}) {
 		_, existsRevision := se.GetAnnotations()["aeraki.net/revision"]
 		_, existsExternal := se.GetAnnotations()["aeraki.net/external"]
 
-		if err := w.polarisclient.WatchPolarisService(polarisInfo, w.syncPolarisServices2Istio, !(existsRevision && existsExternal), stop); err != nil {
+		if err := w.polarisclient.WatchPolarisService(polarisInfo, w.syncPolarisServices2Istio,
+			!(existsRevision && existsExternal), stop); err != nil {
 			log.Errorf("Watch polaris %v failed, error: %v", polarisInfo, err)
 			continue
 		}
@@ -102,7 +106,8 @@ func (w *ProviderWatcher) syncPolarisServices2Istio(polarisInfo *model.PolarisIn
 		return
 	}
 
-	oldServiceEntry, err := w.ic.NetworkingV1alpha3().ServiceEntries(w.configRootNS).Get(context.TODO(), model.CovertServiceName(polarisInfo.PolarisNamespace, polarisInfo.PolarisService), v1.GetOptions{})
+	oldServiceEntry, err := w.ic.NetworkingV1alpha3().ServiceEntries(w.configRootNS).Get(context.TODO(),
+		model.CovertServiceName(polarisInfo.PolarisNamespace, polarisInfo.PolarisService), v1.GetOptions{})
 	if err != nil {
 		klog.Infof("[syncPolarisServices2Istio] get old service entries failed, error: %v", err)
 		return
@@ -110,10 +115,12 @@ func (w *ProviderWatcher) syncPolarisServices2Istio(polarisInfo *model.PolarisIn
 
 	newServiceEntry.Addresses = append(newServiceEntry.Addresses, oldServiceEntry.Spec.GetAddresses()...)
 
-	if revision, exists := oldServiceEntry.GetAnnotations()["aeraki.net/revision"]; !exists || newAnnotations["aeraki.net/revision"] != revision {
+	if revision, exists := oldServiceEntry.GetAnnotations()["aeraki.net/revision"]; !exists ||
+		newAnnotations["aeraki.net/revision"] != revision {
 		klog.Infof("[syncPolarisServices2Istio] update serviceentry: %v", newServiceEntry)
 		_, err = w.ic.NetworkingV1alpha3().ServiceEntries(oldServiceEntry.Namespace).Update(context.TODO(),
-			w.toServiceEntryCRD(model.CovertServiceName(polarisInfo.PolarisNamespace, polarisInfo.PolarisService), newServiceEntry, oldServiceEntry, newAnnotations),
+			w.toServiceEntryCRD(model.CovertServiceName(polarisInfo.PolarisNamespace, polarisInfo.PolarisService),
+				newServiceEntry, oldServiceEntry, newAnnotations),
 			v1.UpdateOptions{FieldManager: aerakiFieldManager})
 		if err != nil {
 			klog.Errorf("failed to update ServiceEntry: %s", err.Error())
@@ -123,7 +130,8 @@ func (w *ProviderWatcher) syncPolarisServices2Istio(polarisInfo *model.PolarisIn
 	}
 }
 
-func (w *ProviderWatcher) toServiceEntryCRD(name string, new *istio.ServiceEntry, old *v1alpha3.ServiceEntry, annotations map[string]string) *v1alpha3.ServiceEntry {
+func (w *ProviderWatcher) toServiceEntryCRD(name string, new *istio.ServiceEntry, old *v1alpha3.ServiceEntry,
+	annotations map[string]string) *v1alpha3.ServiceEntry {
 	serviceEntry := &v1alpha3.ServiceEntry{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
