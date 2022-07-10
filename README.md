@@ -34,6 +34,8 @@ metadata:
     registry: polaris
 spec:
   hosts:
-    - dev. <polaris-name-for-k8s>.polaris
+    - dev.<polaris-name-for-k8s>.polaris
   resolution: NONE # or STATIC
 ```
+
+We just watche the ServiceEntry in the polaris namespae.
