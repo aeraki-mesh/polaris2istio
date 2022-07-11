@@ -38,4 +38,4 @@ spec:
   resolution: NONE # or STATIC
 ```
 
-We just watche the ServiceEntry in the polaris namespae.
+We just watch the ServiceEntrys in the polaris namespae.
