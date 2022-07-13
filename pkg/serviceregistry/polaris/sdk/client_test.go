@@ -17,7 +17,7 @@ package polarisclient
 import (
 	"testing"
 
-	mock "github.com/aeraki-framework/polaris2istio/pkg/serviceregistry/polaris/mock"
+	mock "github.com/aeraki-mesh/polaris2istio/pkg/serviceregistry/polaris/mock"
 	"github.com/polarismesh/polaris-go/api"
 )
 

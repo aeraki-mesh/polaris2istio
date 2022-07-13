@@ -17,7 +17,7 @@ package polarismock
 import (
 	"testing"
 
-	polarissdk "github.com/aeraki-framework/polaris2istio/pkg/serviceregistry/polaris/sdk"
+	polarissdk "github.com/aeraki-mesh/polaris2istio/pkg/serviceregistry/polaris/sdk"
 	"github.com/polarismesh/polaris-go/api"
 
 	"github.com/stretchr/testify/assert"

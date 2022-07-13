@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	registryModel "github.com/aeraki-framework/polaris2istio/pkg/serviceregistry/polaris/model"
+	registryModel "github.com/aeraki-mesh/polaris2istio/pkg/serviceregistry/polaris/model"
 	"github.com/polarismesh/polaris-go/api"
 	"github.com/polarismesh/polaris-go/pkg/config"
 	"github.com/polarismesh/polaris-go/pkg/model"

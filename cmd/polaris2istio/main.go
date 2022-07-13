@@ -20,7 +20,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	watcher "github.com/aeraki-framework/polaris2istio/pkg/serviceregistry/polaris/watcher"
+	watcher "github.com/aeraki-mesh/polaris2istio/pkg/serviceregistry/polaris/watcher"
 	"istio.io/pkg/log"
 )
 

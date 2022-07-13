@@ -22,7 +22,7 @@ import (
 
 	"log"
 
-	polarismock "github.com/aeraki-framework/polaris2istio/pkg/serviceregistry/polaris/mock"
+	polarismock "github.com/aeraki-mesh/polaris2istio/pkg/serviceregistry/polaris/mock"
 )
 
 const (

@@ -1,4 +1,4 @@
-module github.com/aeraki-framework/polaris2istio
+module github.com/aeraki-mesh/polaris2istio
 
 go 1.17
 

@@ -21,8 +21,8 @@ import (
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 
 	// "istio.io/client-go/pkg/apis/networking/v1beta1"
-	"github.com/aeraki-framework/polaris2istio/pkg/serviceregistry/polaris/model"
-	polaris "github.com/aeraki-framework/polaris2istio/pkg/serviceregistry/polaris/sdk"
+	"github.com/aeraki-mesh/polaris2istio/pkg/serviceregistry/polaris/model"
+	polaris "github.com/aeraki-mesh/polaris2istio/pkg/serviceregistry/polaris/sdk"
 	istioclient "istio.io/client-go/pkg/clientset/versioned"
 
 	"istio.io/pkg/log"

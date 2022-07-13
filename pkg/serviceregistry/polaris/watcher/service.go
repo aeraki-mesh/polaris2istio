@@ -17,7 +17,7 @@ package polaris
 import (
 	"time"
 
-	polaris "github.com/aeraki-framework/polaris2istio/pkg/serviceregistry/polaris/sdk"
+	polaris "github.com/aeraki-mesh/polaris2istio/pkg/serviceregistry/polaris/sdk"
 	istioclient "istio.io/client-go/pkg/clientset/versioned"
 	"istio.io/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
